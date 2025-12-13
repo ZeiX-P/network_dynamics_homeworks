@@ -1,0 +1,305 @@
+\documentclass[12pt,a4paper]{article}
+
+% Packages
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usetikzlibrary{arrows,positioning,shapes}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage[margin=1in]{geometry}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{subcaption}
+
+% Python code styling
+\lstset{
+    language=Python,
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{blue},
+    commentstyle=\color{gray},
+    stringstyle=\color{red},
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    stepnumber=1,
+    numbersep=5pt,
+    backgroundcolor=\color{white},
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    frame=single,
+    tabsize=2,
+    captionpos=b,
+    breaklines=true,
+    breakatwhitespace=false
+}
+
+\title{Network Dynamics and Learning \\ Homework I}
+\author{Patrik Pavan \\  345890 }
+\date{November 16, 2025}
+
+\begin{document}
+
+\maketitle
+
+\section{Exercise 1: Network Flow Analysis}
+
+\subsection{Part (a): Cut Capacity and Minimum Cut}
+
+
+
+\textbf{All possible cuts:}
+
+
+\begin{table}[h]
+\centering
+\caption{All possible s-t cuts}
+\begin{tabular}{@{}clll@{}}
+\toprule
+Cut & $U$ & $U^C$ & Capacity \\ \midrule
+1 & $\{o\}$ & $\{a, b, c, d\}$ & 6 \\
+2 & $\{o, a\}$ & $\{b, c, d\}$ & 6 \\
+3 & $\{o, b\}$ & $\{a, c, d\}$ & 6 \\
+4 & $\{o, a, b\}$ & $\{c, d\}$ & 5 \\
+5 & $\{o, c\}$ & $\{a, b, d\}$ & 9 \\
+6 & $\{o, a, c\}$ & $\{b, d\}$ & 5 \\
+7 & $\{o, b, c\}$ & $\{a, d\}$ & 5 \\
+8 & $\{o, a, b, c\}$ & $\{d\}$ & 5 \\ \bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Minimum cut capacity:} 5
+
+There are multiple minimum cuts with capacity 5 (cuts 4, 6, 7, and 8). The minimum capacity to be removed for no feasible flow from $o$ to $d$ to exist is 5 units.
+
+
+
+\subsection{Part (b): Optimal Distribution of Extra Capacity}
+
+
+\textbf{Strategy:} The optimal approach is to iteratively identify the minimum cut and add capacity to the bottleneck edges (edges with smallest capacity in the current minimum cut). This ensures that each additional unit of capacity maximally increases the network throughput.
+
+\textbf{Algorithm:}
+\begin{enumerate}
+    \item Find the current minimum cut 
+    \item Identify edges crossing the cut
+    \item Add 1 unit of capacity to the edge with smallest current capacity
+    \item Repeat until all $x$ units are distributed
+\end{enumerate}
+
+
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.75\textwidth]{output1.png}
+\caption{Maximum throughput as a function of extra capacity $x$.}
+\label{fig:throughput_b}
+\end{figure}
+
+The plot shows that the throughput increases monotonically with $x$, but not linearly. Plateaus occur when multiple units must be added before the next bottleneck is resolved.
+
+\subsection{Part (c): Adding a New Link with Extra Capacity}
+\textbf{Optimal link placement:} We add a direct link $e_8: o \to d$ with initial capacity $c_8 = 1$. This link is optimal because it creates an independent path from source to destination, bypassing intermediate bottlenecks and immediately increasing the baseline throughput.
+
+\textbf{Strategy for capacity distribution:} We use the same greedy algorithm as Part (b), but now the new link $e_8$ is included in the candidate set. The algorithm iteratively finds the minimum cut and adds capacity to the bottleneck edge (including $e_8$ if it's the bottleneck).
+
+\textbf{Results:}
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.7\textwidth]{output2.png}
+\caption{Maximum throughput with new link as a function of extra capacity $x$}
+\label{fig:throughput_c}
+\end{figure}
+
+
+\section{Exercise 2: Centrality Measures}
+Consider the simple graph $G = (V, E)$ in Figure 2 from the homework description.
+
+\subsection{Part (a): Katz Centrality}
+With $\beta = 0.15$ and uniform intrinsic centrality $\mu$:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{cc}
+\hline
+\textbf{Node} & \textbf{Katz Centrality} \\
+\hline
+1  & 0.11813975 \\
+2  & 0.11813975 \\
+3  & 0.11813975 \\
+4  & 0.11813975 \\
+5  & 0.11813975 \\
+6  & 0.13008034 \\
+7  & 0.04424717 \\
+8  & 0.03171920 \\
+9  & 0.04281112 \\
+10 & 0.02430259 \\
+11 & 0.02430259 \\
+12 & 0.02430259 \\
+13 & 0.02430259 \\
+14 & 0.02430259 \\
+15 & 0.03893046 \\
+\hline
+\end{tabular}
+\caption{Katz centrality values for all nodes with $\beta = 0.15$ and uniform $\mu$.}
+\label{tab:katz_centrality}
+\end{table}
+
+\subsection{Part (b): Distributed PageRank Algorithm}
+
+\textbf{Iterative formula:} $z(t + 1) = (1 - \beta)P'z(t) + \beta\mu$
+
+where $P = D^{-1}W$ is the row-stochastic matrix, $D$ is the diagonal degree matrix, $\beta = 0.15$, and $\mu = \frac{1}{n}\mathbf{1}$ is uniform.
+
+\textbf{Distributed Algorithm:}
+\begin{enumerate}
+    \item \textbf{Initialize:} Each node $i$ sets $z_i(0) = \frac{1}{n}$
+    \item \textbf{Iterate until convergence:}
+    \begin{itemize}
+        \item Each node $i$ sends $\frac{z_i(t)}{d_i}$ to all out-neighbors (where $d_i$ is node $i$'s out-degree)
+        \item Each node $i$ receives messages from in-neighbors and updates locally:
+        $$z_i(t+1) = (1-\beta)\sum_{j \to i} \frac{z_j(t)}{d_j} + \beta \cdot \frac{1}{n}$$
+    \end{itemize}
+    \item \textbf{Stop} when $\|z(t+1) - z(t)\| < \epsilon$
+\end{enumerate}
+\subsection{Part (c): Analysis of Nodes n6 and n9}
+
+\textbf{Observed values:}
+\begin{itemize}
+    \item \textbf{Node n6}: Katz = 0.130 (rank 1), PageRank = 0.114 (rank 2)
+    \item \textbf{Node n9}: Katz = 0.043 (rank 8), PageRank = 0.194 (rank 1)
+\end{itemize}
+
+The rankings are \textbf{completely reversed} between the two measures.
+
+\textbf{Node n6} (bridge to K5 clique): Ranks high in Katz because it connects to well-connected nodes (K5 clique) and gets their full centrality value. Ranks lower in PageRank because each K5 node has 6 connections, so n6 only gets $\frac{1}{6}$ of their PageRank—the rest stays inside the clique.
+
+\textbf{Node n9} (star hub with 5 leaves): Ranks low in Katz because its leaf neighbors are far from the center and have low centrality. Ranks highest in PageRank because each leaf only connects to n9, so they give 100\% of their PageRank back to n9.
+
+\textbf{Key difference:} Katz counts all neighbor centrality equally. PageRank splits a node's centrality among all its connections, so getting centrality from a node with few connections is worth more.
+
+\subsection{Part (d): PageRank for Different $\beta$ Values}
+\begin{table}[h]
+\centering
+\caption{PageRank centrality for different $\beta$ values}
+\begin{tabular}{@{}ccc@{}}
+\toprule
+$\beta$ & $r_{n_6}$ & $r_{n_9}$ \\ \midrule
+0.00 & 0.1459 & 0.1162 \\
+0.25 & 0.1106 & 0.1911 \\
+0.50 & 0.1014 & 0.1667 \\
+0.75 & 0.0875 & 0.1270 \\
+1.00 & 0.0667 & 0.0667 \\ \bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Monotonicity analysis:}
+The difference $r_{n_6} - r_{n_9}$ is \textbf{not monotone} in $\beta$. At $\beta = 0$, n6 has slightly higher centrality (+0.030). The difference becomes negative (n9 wins) for $\beta \in [0.1, 0.75]$ with maximum separation at $\beta \approx 0.25$ (difference = $-0.081$). At $\beta = 1$, both nodes have equal centrality. This non-monotone behavior occurs because two competing effects operate at different $\beta$ ranges: dense subgraph preference (favors n6 at low $\beta$) versus star amplification (favors n9 at medium $\beta$).
+
+\textbf{Extreme values interpretation:}
+\begin{itemize}
+    \item $\beta = 0$: PageRank becomes the stationary distribution of the random walk on the graph with no teleportation. Node n6 wins slightly because it connects to the dense K5 clique, which has more internal circulation. However, the difference is small because both structures have reasonable walk properties.
+    
+    \item $\beta = 1$: PageRank equals the uniform intrinsic centrality $\mu = \frac{1}{n}$. The network structure becomes completely irrelevant—all nodes have identical centrality (0.0667 each).
+\end{itemize}
+
+\section{Exercise 3: Traffic Network Optimization}
+
+
+\subsection{Part (a): Shortest Path}
+
+\textbf{Shortest path:} $1 \to 2 \to 3 \to 9 \to 13 \to 17$
+
+\textbf{Total travel time:} 0.5598 time units
+
+\subsection{Part (b): Maximum Flow}
+
+\textbf{Maximum flow:} 22,448 
+
+\subsection{Part (c): Flow Conservation}
+
+
+The exogenous flow vector $\nu$ is:
+\begin{align*}
+\nu = [&16806, \, 8570, \, 19448, \, 4957, \, -746, \, 4768, \, 413, \, -2, \\
+&-5671, \, 1169, \, -5, \, -7131, \, -380, \, -7412, \, -7810, \\
+&-3430, \, -23544]^T
+\end{align*}
+\subsection{Part (d): Social Optimum}
+
+\textbf{Results:}
+
+\noindent\textbf{Optimal total cost:} 26,142.67
+
+\noindent The optimal flow vector $f^* \in \mathbb{R}^{28}$ is:
+\begin{align*}
+f^* = (&6569.07, 5809.95, 3046.99, 3046.99, 10236.93, 4666.55, 3061.21, \\
+&2596.03, 3104.55, 759.12, 0.01, 2762.96, 0.00, 3046.99, \\
+&5570.38, 2893.88, 5040.96, 2364.46, 465.19, 2254.44, \\
+&3359.07, 5613.50, 2371.92, 0.00, 6346.13, 5418.91, \\
+&5040.96, 5040.96)^T
+\end{align*}
+
+\subsection{Part (e): Wardrop Equilibrium}
+
+\textbf{Results:}
+
+\noindent\textbf{Total cost at Wardrop equilibrium:} 15,731.95
+
+\noindent The Wardrop equilibrium flow vector $f^{(0)} \in \mathbb{R}^{28}$ is:
+\begin{align*}
+f^{(0)} = (&6557.54, 6308.56, 2200.67, 2200.67, 10248.46, 4706.68, 2859.96, \\
+&2232.26, 3349.96, 248.97, 11.69, 4096.21, 0.00, 2200.67, \\
+&5541.78, 2343.35, 5294.13, 2095.69, 639.38, 2978.52, \\
+&2982.73, 5961.25, 2522.41, 0.00, 6788.80, 4723.07, \\
+&5294.13, 5294.13)^T
+\end{align*}
+
+\subsection{Part (f): Wardrop Equilibrium with Marginal Cost Tolls}
+
+
+\textbf{Results:}
+
+The Wardrop equilibrium flow vector with tolls $f^{(\omega)} \in \mathbb{R}^{28}$ is:
+\begin{align*}
+f^{(\omega)} = (&6570.06, 5810.19, 3047.00, 3047.00, 10235.94, 4666.15, 3061.51, \\
+&2595.79, 3104.40, 759.87, 0.00, 2763.18, 0.00, 3047.00, \\
+&5569.79, 2893.37, 5040.93, 2364.51, 465.72, 2254.57, \\
+&3359.09, 5613.66, 2372.10, 0.00, 6345.96, 5419.11, \\
+&5040.93, 5040.93)^T
+\end{align*}
+
+\textbf{Observation:} The Wardrop equilibrium with marginal cost tolls $f^{(\omega)}$ nearly coincides with the social optimum $f^*$. The maximum absolute difference is less than 1 vehicle per link. This demonstrates that marginal cost pricing aligns selfish routing behavior with social welfare.
+
+\subsection{Part (g): Alternative Cost Function}
+
+\textbf{System optimum $f^*$:}
+
+The optimal flow vector $f^* \in \mathbb{R}^{28}$ is:
+\begin{align*}
+f^* = (&6584.43, 5577.92, 3367.42, 3367.42, 10221.57, 4669.47, 3156.42, \\
+&2711.80, 2987.95, 1006.55, 0.00, 2210.48, 0.00, 3367.42, \\
+&5552.09, 3084.73, 4986.91, 2519.54, 444.68, 1934.55, \\
+&3529.36, 5463.88, 2202.34, 0.00, 6249.23, 5569.77, \\
+&4986.91, 4986.91)^T
+\end{align*}
+
+\textbf{Optimal cost:} 15,350.35
+
+\textbf{Constructed tolls $\omega^*$:}
+
+To align the Wardrop equilibrium with this system optimum:
+$
+\omega_e^* = f_e^* \tau_e'(f_e^*) - l_e
+$
+
+\textbf{Verification:} Computing $f(\omega^*)$ yields maximum difference $\|f(\omega^*) - f^*\|_\infty = 0.24$, confirming the tolls successfully induce the system optimum.
+\appendix
+
+\section{Python Code}
+https://github.com/ZeiX-P/network\_dynamics\_homeworks
+\end{document}
